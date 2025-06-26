@@ -2,24 +2,67 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+
+	lab2 "github.com/zhuravlovO/KPI-APZ-lab2"
 )
 
 var (
-	inputExpression = flag.String("e", "", "Expression to compute")
-	// TODO: Add other flags support for input and output configuration.
+	expression = flag.String("e", "", "Expression to compute")
+	inputFile  = flag.String("f", "", "File with expression to compute")
+	outputFile = flag.String("o", "", "File to output the result")
 )
 
 func main() {
 	flag.Parse()
 
-	// TODO: Change this to accept input from the command line arguments as described in the task and
-	//       output the results using the ComputeHandler instance.
-	//       handler := &lab2.ComputeHandler{
-	//           Input: {construct io.Reader according the command line parameters},
-	//           Output: {construct io.Writer according the command line parameters},
-	//       }
-	//       err := handler.Compute()
+	if *expression == "" && *inputFile == "" {
+		fmt.Fprintln(os.Stderr, "Error: You must provide an expression with -e or an input file with -f")
+		os.Exit(1)
+	}
 
-	// res, _ := lab2.PrefixToPostfix("+ 2 2")
-	//fmt.Println(res)
+	if *expression != "" && *inputFile != "" {
+		fmt.Fprintln(os.Stderr, "Error: The -e and -f flags cannot be used at the same time")
+		os.Exit(1)
+	}
+
+	var reader io.Reader
+	if *expression != "" {
+		reader = strings.NewReader(*expression)
+	} else {
+		file, err := os.Open(*inputFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error opening input file: %s\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		reader = file
+	}
+
+	var writer io.Writer
+	if *outputFile != "" {
+		file, err := os.Create(*outputFile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating output file: %s\n", err)
+			os.Exit(1)
+		}
+		defer file.Close()
+		writer = file
+	} else {
+		writer = os.Stdout
+	}
+
+	handler := &lab2.ComputeHandler{
+		Input:  reader,
+		Output: writer,
+	}
+
+	err := handler.Compute()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
+	}
 }

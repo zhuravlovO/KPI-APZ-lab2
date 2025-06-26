@@ -21,9 +21,15 @@ func TestPostfixToLisp(t *testing.T) {
 			expectErr: false,
 		},
 		{
-			name:      "Complex expression from task",
+			name:      "Medium expression from task",
 			input:     "4 2 - 3 2 ^ * 5 +",
 			expected:  "(+ (* (- 4 2) (pow 3 2)) 5)",
+			expectErr: false,
+		},
+		{
+			name:      "Complex expression with 8 operands",
+			input:     "1 2 + 3 * 9 3 / - 5 + 6 2 / *",
+			expected:  "(* (+ (- (* (+ 1 2) 3) (/ 9 3)) 5) (/ 6 2))",
 			expectErr: false,
 		},
 		{
@@ -39,6 +45,12 @@ func TestPostfixToLisp(t *testing.T) {
 		{
 			name:      "Invalid expression - too many operands",
 			input:     "4 2 3 +",
+			expectErr: true,
+		},
+		{
+			name:  "Invalid expression - unknown operator",
+			input: "5 5 &",
+
 			expectErr: true,
 		},
 	}
